@@ -10,46 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 2️⃣ Setup SSH
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.8.1
       with:
         ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-    # 3️⃣ Ensure remote directory exists
-    - name: Prepare remote folder
-      run: |
-        ssh ubuntu@145.241.217.10 "mkdir -p /home/ubuntu/image_to_stl"
-
-    # 4️⃣ Sync code to server (ABSOLUTE PATH)
     - name: Sync code to Oracle VM
       run: |
-        rsync -avz \
-          --exclude '.git' \
-          --exclude '.github' \
-          ./ \
-          ubuntu@145.241.217.10:/home/ubuntu/image_to_stl/
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./ ubuntu@145.241.217.10:~/image_to_stl/
 
-    # 5️⃣ Install python dependencies
     - name: Install Python dependencies
       run: |
-        ssh ubuntu@145.241.217.10 << 'EOF'
-          cd /home/ubuntu/image_to_stl
+        ssh -o StrictHostKeyChecking=no ubuntu@145.241.217.10 << 'EOF'
+          cd ~/image_to_stl
           python3 -m venv venv || true
           source venv/bin/activate
           pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
         EOF
 
-    # 6️⃣ Optional: run STL generator
     - name: Run STL generator
       run: |
-        ssh ubuntu@145.241.217.10 << 'EOF'
-          cd /home/ubuntu/image_to_stl
+        ssh -o StrictHostKeyChecking=no ubuntu@145.241.217.10 << 'EOF'
+          cd ~/image_to_stl
           source venv/bin/activate
-          python image_to_stl.py input.jpg output.stl 10 || true
+          python image_to_stl.py input.jpg output.stl 10
         EOF
