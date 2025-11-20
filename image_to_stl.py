@@ -22,6 +22,8 @@ def main():
     img = img.resize((500, 500))
     data = (1.0 - (np.array(img) / 255.0)) * max_height
 
+    data = np.flipud(data)
+
     height, width = data.shape
     num_triangles = (width - 1) * (height - 1) * 2
 
