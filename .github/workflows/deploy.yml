@@ -3,32 +3,28 @@ name: Auto-deploy image_to_stl to Oracle Server
 on:
   push:
     branches:
-      - main  # Only deploy on pushes to main branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout code
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 2️⃣ Set up SSH
     - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.8.1
+      uses: webfactory/ssh-agent@v0.7.0
       with:
         ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-    # 3️⃣ Sync repo to server
     - name: Sync code to Oracle VM
       run: |
-        rsync -avz --delete ./ ubuntu@145.241.217.10:~/image_to_stl/
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" --delete ./ ubuntu@145.241.217.10:~/image_to_stl/
 
-    # 4️⃣ Install Python dependencies
     - name: Install Python dependencies
       run: |
-        ssh ubuntu@145.241.217.10 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ubuntu@145.241.217.10 << 'EOF'
           cd ~/image_to_stl
           python3 -m venv venv || true
           source venv/bin/activate
@@ -36,10 +32,9 @@ jobs:
           pip install -r requirements.txt
         EOF
 
-    # 5️⃣ Optional: Run STL generator
     - name: Run STL generator
       run: |
-        ssh ubuntu@145.241.217.10 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ubuntu@145.241.217.10 << 'EOF'
           cd ~/image_to_stl
           source venv/bin/activate
           python image_to_stl.py input.jpg output.stl 10
