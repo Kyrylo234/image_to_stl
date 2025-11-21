@@ -8,10 +8,7 @@ def main():
         print("Usage: python image_to_stl.py <input_image> <output_stl> <max_height>")
         return
 
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-    max_height = float(sys.argv[3])
-    blur_radius = int(sys.argv[4])
+    input_file, output_file, max_height, blur_radius = sys.argv[1], sys.argv[2], float(sys.argv[3]), int(sys.argv[4])
 
 
     img = Image.open(input_file)
@@ -23,14 +20,11 @@ def main():
 
     # Convert to grayscale, then apply blur
     img = img.convert("L").filter(ImageFilter.GaussianBlur(radius=blur_radius))
-
-    # Without gausian blur
-    #img = Image.open(input_file).convert('L')
-
-
     
+    # Invert (so black = high, white = low) and scale to max_height
     data = (1.0 - (np.array(img) / 255.0)) * max_height
 
+    # Flip vertically to match STL coordinate system
     data = np.flipud(data)
 
     height, width = data.shape
@@ -38,8 +32,6 @@ def main():
 
     # Prepare STL mesh
     stl_mesh = mesh.Mesh(np.zeros(num_triangles, dtype=mesh.Mesh.dtype))
-
-    
 
     tri_index = 0
     unit_scale = 0.01  # Force STL output in millimeters
