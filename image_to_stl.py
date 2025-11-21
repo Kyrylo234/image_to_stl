@@ -11,15 +11,24 @@ def main():
     input_file = sys.argv[1]
     output_file = sys.argv[2]
     max_height = float(sys.argv[3])
+    blur_radius = int(sys.argv[4])
 
-    # Load image and convert to grayscale
-    img = Image.open(input_file).convert('L').filter(ImageFilter.GaussianBlur(radius=5))
+
+    img = Image.open(input_file)
+    # Fix transparent PNGs (flatten to white)
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        alpha = img.convert("RGBA")
+        background = Image.new("RGBA", alpha.size, (255, 255, 255, 255))
+        img = Image.alpha_composite(background, alpha).convert("RGB")
+
+    # Convert to grayscale, then apply blur
+    img = img.convert("L").filter(ImageFilter.GaussianBlur(radius=blur_radius))
 
     # Without gausian blur
     #img = Image.open(input_file).convert('L')
 
 
-    img = img.resize((500, 500))
+    
     data = (1.0 - (np.array(img) / 255.0)) * max_height
 
     data = np.flipud(data)
