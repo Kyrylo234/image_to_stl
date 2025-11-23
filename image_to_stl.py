@@ -9,7 +9,6 @@ from stl import mesh
 def mesh_to_stl_bytes(stl_mesh):
     """
     Convert a numpy-stl mesh to binary STL bytes stored in memory.
-    Works with numpy-stl 4.12.2 and BytesIO.
     """
     buf = io.BytesIO()
 
@@ -22,41 +21,41 @@ def mesh_to_stl_bytes(stl_mesh):
 
     # Each triangle: normal + 3 vertices + attribute byte count
     for tri in stl_mesh.data:
-        # Normal vector
         buf.write(struct.pack("<3f", *tri['normals']))
-
-        # Triangle vertices
         for vertex in tri['vectors']:
             buf.write(struct.pack("<3f", *vertex))
-
-        # Attribute byte count (always 0)
-        buf.write(struct.pack("<H", 0))
+        buf.write(struct.pack("<H", 0))  # attribute byte count
         
     return buf.getvalue()
 
 
 def main():
-    if len(sys.argv) < 4:
-        print("Usage: python image_to_stl.py <input_image> <max_height> <blur_radius>")
+    if len(sys.argv) < 3:
+        print("Usage: python image_to_stl.py <max_height> <blur_radius>", file=sys.stderr)
         return
 
-    input_file = sys.argv[1]
-    max_height = float(sys.argv[2])
-    blur_radius = int(sys.argv[3])
+    max_height = float(sys.argv[1])
+    blur_radius = int(sys.argv[2])
 
-    # Load image
-    img = Image.open(input_file)
+    # --- Read image bytes from Java through stdin ---
+    image_bytes = sys.stdin.buffer.read()
+    if not image_bytes:
+        print("ERROR: No image data received on stdin.", file=sys.stderr)
+        sys.exit(1)
 
-    # Fix transparent PNG (flatten over white)
+    # Load image from memory (BytesIO), not from disk
+    img = Image.open(io.BytesIO(image_bytes))
+
+    # Fix transparent PNGs
     if img.mode in ("RGBA", "LA"):
         background = Image.new("RGB", img.size, (255, 255, 255))
         background.paste(img, mask=img.split()[-1])
         img = background
 
-    # Convert to grayscale and blur
+    # Convert to grayscale + blur
     img = img.convert("L").filter(ImageFilter.GaussianBlur(radius=blur_radius))
 
-    # Convert image into height map (black = high, white = low)
+    # Convert image into heightmap (black = high, white = low)
     data = (1.0 - (np.array(img) / 255.0)) * max_height
     data = np.flipud(data)
 
@@ -77,10 +76,7 @@ def main():
             X0, X1 = x * scale, (x + 1) * scale
             Y0, Y1 = y * scale, (y + 1) * scale
 
-            h1 *= scale
-            h2 *= scale
-            h3 *= scale
-            h4 *= scale
+            h1 *= scale; h2 *= scale; h3 *= scale; h4 *= scale
 
             stl_mesh.vectors[tri_index] = np.array([
                 [X0, Y0, h1],
@@ -96,10 +92,10 @@ def main():
             ])
             tri_index += 1
 
-    # Convert to bytes in memory
+    # Convert to STL binary in memory
     stl_bytes = mesh_to_stl_bytes(stl_mesh)
 
-    # Output bytes to stdout (Java will read this!)
+    # Output STL bytes to stdout (Java will read this!)
     sys.stdout.buffer.write(stl_bytes)
 
 
