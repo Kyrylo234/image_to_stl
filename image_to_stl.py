@@ -87,6 +87,19 @@ def image_to_stl(file, max_height, blur_radius):
 
     # Convert STL → GLB
     mesh = trimesh.load(stl_path)
+
+
+    # Add simple PBR material so it isn't dark
+    material = trimesh.visual.material.PBRMaterial(
+        baseColorFactor=[1.0, 1.0, 1.0, 1.0],   # bright white
+        metallicFactor=0.0,                    # non-metal
+        roughnessFactor=0.8                    # diffuse lighting
+    )
+
+    # Apply material to mesh
+    mesh.visual = trimesh.visual.TextureVisuals(material=material)
+
+
     mesh.export(glb_path)
 
     # Return temp file paths for Gradio
