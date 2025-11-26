@@ -165,16 +165,47 @@ def image_to_stl(img, max_height, blur_radius, mode, transparency_threshold):
 with gr.Blocks(title="Image to STL Generator") as iface:
     gr.Markdown("## Image to STL Generator")
 
-    image_input = gr.Image(type="pil", label="Upload Image", interactive=True)
+    image_input = gr.Image(
+    type="pil",
+    label="Upload Image",
+    interactive=True
+)
 
-    max_height = gr.Slider(0, 50, value=1, label="Max Height (mm)")
-    blur_radius = gr.Slider(0, 10, value=0, step=1, label="Blur Radius (px)")
-    mode = gr.Radio(["Grayscale", "Binary"], value="Grayscale", label="Image Mode")
+    gr.Markdown("<small>💡 High-contrast images produce the cleanest 3D surfaces.</small>")
+
+    max_height = gr.Slider(
+        0, 50, value=10,
+        label="Max Height (mm)",
+        info="Larger values produce steeper surfaces."
+    )
+
+    blur_radius = gr.Slider(
+        0, 10, value=3, step=1,
+        label="Blur Radius (px) (0 = no blur, 10 = strong blur)",
+        info="Recommended: 3. Smooths the slopes."
+    )
+
+    mode = gr.Radio(
+        ["Grayscale", "Binary"],
+        value="Grayscale",
+        label="Image Mode",
+        info="Binary mode = image converted into either black or white pixels (Useful for clean logos). Grayscale = height is based on the colour of the pixel."
+    )
 
     transparency_threshold = gr.Slider(
-        0, 255, value=255, step=1,
-        label="Transparency Threshold (pixels >= this value disappear)"
+        1, 255, value=255, step=1,
+        label="Transparency Threshold (1 = only black pixels, 255 = leave all pixels)",
+        info="The more you slide to the left the more transparent the model becomes."
     )
+
+    # Optional "tips" block
+    gr.Markdown("""
+    **Tips:**
+    - Use **Binary mode** for clean shapes (logos, icons).
+    - Use **Grayscale mode** for detailed images (faces, landscapes).
+    - Increasing the **transparency threshold** removes lighter pixels.
+    - A small **blur** helps remove noisy edges.
+    """)
 
     generate_btn = gr.Button("Generate STL")
 
