@@ -10,6 +10,6 @@
 ## 💻 Demo
 
 <p align="center">
-  <img src="/ImagesForGitHub/image1.png" width="90%">
-  <img src="/ImagesForGitHub/image2.png" width="90%">
+  <img src="/GitHub/photo1.png" width="90%">
+  <img src="/GitHub/photo2.png" width="90%">
 </p>
