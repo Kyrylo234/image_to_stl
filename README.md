@@ -1,6 +1,6 @@
 # 🖼️ Image To STL
 
-Convert any images into 3D printable STL models with Python! This project applies image processing techniques to generate 3D cuboids from pixel intensities, perfect for 3D printing enthusiasts.
+Convert any image into 3D printable STL models with Python! This project applies image processing techniques to generate 3D cuboids from pixel intensities, perfect for 3D printing enthusiasts.
 
 ## 💻 Demo
 <p align="center">
