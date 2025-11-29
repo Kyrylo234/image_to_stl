@@ -218,4 +218,4 @@ with gr.Blocks(title="Image to STL Generator") as iface:
         outputs=[model_output, stl_output]
     )
 
-iface.launch()
+iface.launch(server_name="0.0.0.0", prevent_thread_lock=False)
